@@ -8,7 +8,7 @@ cd $(pwd)/../
 xhost +local:${USER}
 
 docker run -it \
-    --gpus all \
+    --runtime=nvidia \
     --device /dev/snd \
     --env CONTAINER_NAME=${str} \
     --env DISPLAY=${DISPLAY} \

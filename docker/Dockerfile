@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/isaac/ros:x86_64-ros2_humble_23aced29fb80f407b727eec37775e30e
+FROM nvcr.io/nvidia/isaac/ros:aarch64-ros2_humble_77e6a678c2058abf96bedcb8f7dd4330
 LABEL maintainer="Valentin Keith"
 
 ###################################
