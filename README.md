@@ -168,8 +168,8 @@ $ sudo systemctl start docker
 $ docker info | grep "Docker Root Dir"
 ```
 
-[!NOTE]
-Make sure that /mnt/ssd is properly mounted before starting Docker.
+> [!NOTE]
+> Make sure that /mnt/ssd is properly mounted before starting Docker.
 You can add it to /etc/fstab for automatic mounting at boot.
 
 ### Download Nvidia Isaac ROS image
