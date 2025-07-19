@@ -105,11 +105,78 @@ $ export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
 $ reboot
 ```
 
+### Change Docker Data Directory (Optional but Recommended)
+
+Before pulling the Nvidia Isaac ROS image, it is recommended to change the Docker data directory if you want to store images and containers in a different location (e.g., an SSD with more space).
+
+By default, Docker stores data in `/var/lib/docker`.  
+The following steps show how to move it to `/mnt/ssd/docker`:
+
+1. Check the current Docker data directory
+
+```bash
+$ docker info | grep "Docker Root Dir"
+```
+
+2. Stop the Docker service
+
+```bash
+$ sudo systemctl stop docker
+```
+
+3. Move existing data to the new directory
+
+```bash
+$ sudo mv /var/lib/docker/ /mnt/ssd/docker
+```
+
+4. Create Docker configuration directory (if not exists)
+
+```bash
+$ sudo mkdir -p /etc/docker/
+```
+
+5. Edit the Docker daemon configuration
+
+```bash
+$ sudo nano /etc/docker/daemon.json
+```
+
+6. Add the following content:
+
+```json
+{
+  "data-root": "/mnt/ssd/docker"
+}
+```
+
+7. Set correct permissions
+
+```bash
+$ sudo chown -R root:root /mnt/ssd/docker
+```
+
+8. Start the Docker service
+
+```bash
+$ sudo systemctl start docker
+```
+
+9. Check that the new directory is active
+
+```bash
+$ docker info | grep "Docker Root Dir"
+```
+
+[!NOTE]
+Make sure that /mnt/ssd is properly mounted before starting Docker.
+You can add it to /etc/fstab for automatic mounting at boot.
+
 ### Download Nvidia Isaac ROS image
 You have now installed Docker in your machine. Now, we need to download the base image that we are going to use for development.
 
 ```bash
-$ docker pull nvcr.io/nvidia/isaac/ros:x86_64-ros2_humble_23aced29fb80f407b727eec37775e30e
+$ docker pull nvcr.io/nvidia/isaac/ros:aarch64-ros2_humble_77e6a678c2058abf96bedcb8f7dd4330
 ```
 
 > [!NOTE]
