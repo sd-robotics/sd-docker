@@ -1,30 +1,34 @@
 FROM nvcr.io/nvidia/isaac/ros:x86_64-ros2_humble_23aced29fb80f407b727eec37775e30e
-LABEL maintainer="Valentin Keith"
 
 ###################################
-# Environment variable preference #
+# Environment_variable_preference #
 ###################################
-ARG LOCAL_UNAME
 ARG LOCAL_UID
 ARG LOCAL_GID
+ARG USER_NAME
 
-# ENV HOMEPATH=/home/${LOCAL_UNAME}
+ENV USER_NAME=${USER_NAME}
+ENV USER_ID=${LOCAL_UID:-1000}
+ENV GROUP_ID=${LOCAL_GID:-1000}
+
+ENV HOMEPATH=/home/${USER_NAME}
+
 ENV DEBCONF_NOWARNINGS=yes
-
+ENV DEBIAN_FRONTEND=noninteractive
 
 ######################
 # Install basic apps #
 ######################
 # Time-zone setting
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+RUN apt-get update -q && \
+    apt-get install -yq \
         tzdata
 
 ENV TZ="Asia/Tokyo"
 
 # Set Language
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+RUN apt-get update -q && \
+    apt-get install -yq \
         locales \
         locales-all && \
     sed -i '/ja_JP.UTF-8/s/^# //g' /etc/locale.gen
@@ -36,12 +40,14 @@ ENV LANGUAGE=ja_JP:ja
 ENV LC_ALL=ja_JP.UTF-8
 
 # Install basic apps
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yq \
+RUN apt-get update -q && \
+    apt-get install -yq \
         language-pack-ja \
         software-properties-common \
         bash-completion \
         lsb-release \
+        alsa-utils \
+        pulseaudio-utils \
         dpkg-dev \
         pkg-config \
         net-tools \
@@ -49,13 +55,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
         libusb-1.0-0-dev \
         libudev-dev \
         iputils-ping \
-        pipewire-audio-client-libraries \
-        libspa-0.2-bluetooth \
-        libspa-0.2-jack \
-        alsa-utils \
-        apulse \
         uuid-dev \
-        fonts-takao-* \
         sudo \
         git-all \
         wget \
@@ -63,19 +63,26 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
         nano \
         gedit
 
-
-###################
-# Add user (TODO) #
-###################
+#######################
+# Add $USER_NAME user #
+#######################
 # Add sudo user
-# RUN groupadd -g 1005 ${LOCAL_UNAME} && \
-#     useradd --create-home --home-dir ${HOMEPATH} --shell /bin/bash --user-group --groups adm,sudo,audio,video -u ${LOCAL_UID} ${LOCAL_UNAME} && \
-#     echo ${LOCAL_UNAME}:spacedata | chpasswd && \
-#     echo "${LOCAL_UNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Remove existing user with the same UID if it exists
+RUN if id -u ${USER_ID} >/dev/null 2>&1; then \
+        EXISTING_USER=$(id -nu ${USER_ID}); \
+        userdel -r $EXISTING_USER 2>/dev/null || true; \
+    fi && \
+    useradd --create-home --home-dir ${HOMEPATH} --shell /bin/bash --user-group --groups adm,sudo,audio,video -u ${USER_ID} ${USER_NAME} && \
+    groupmod -g ${GROUP_ID} -o ${USER_NAME} && \
+    echo ${USER_NAME}:robotgroup | chpasswd && \
+    echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Set user
+ENV USER=${USER_NAME}
 
 # Set HOME position
-# WORKDIR $HOMEPATH
-# RUN . $HOMEPATH/.bashrc
+WORKDIR ${HOMEPATH}
+RUN /bin/bash -c ". ${HOMEPATH}/.bashrc"
 
 ###############
 # Install pip #
@@ -90,7 +97,7 @@ RUN apt-get update -q && \
         python3-pip
 
 # Run as user
-# USER ${LOCAL_UNAME}
+USER ${USER_NAME}
 
 # install pip
 RUN python3 -m pip install -U \
@@ -110,6 +117,28 @@ RUN apt-get update -q && \
         ros-${ROS_DISTRO}-cyclonedds \
         ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
 
+# Switch back to user for workspace setup
+USER ${USER_NAME}
+
+# Configure ROS environment only if ROS is installed
+RUN /bin/bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && source ~/.bashrc" && \
+    rosdep update && \
+    mkdir -p ~/colcon_ws/src && \
+    echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc && \
+    echo "export ROS_DOMAIN_ID=10" >> ~/.bashrc && \
+    echo "source /usr/share/colcon_cd/function/colcon_cd.sh" >> ~/.bashrc && \
+    echo "export _colcon_cd_root=/opt/ros/${ROS_DISTRO}/" >> ~/.bashrc && \
+    echo "source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash" >> ~/.bashrc && \
+    echo "source ~/colcon_ws/install/setup.bash" >> ~/.bashrc;
+    
+# Create bash aliases (only for ROS builds)
+RUN echo "alias cb='CURRENT_DIR=\`pwd\` && cd /home/\${USER}/colcon_ws/ && colcon build --symlink-install && source ~/.bashrc && cd \${CURRENT_DIR}'" >> /home/${USER}/.bash_aliases && \
+    echo "" >> /home/${USER}/.bash_aliases;
+    
+# User specific environment variables
+RUN echo "export PYTHONDONTWRITEBYTECODE=1" >> /home/${USER}/.bash_aliases && \
+    echo "export PS1='\[\e[1;33;40m\]\$CONTAINER_NAME\[\e[0m\] \${debian_chroot:+(\$debian_chroot)}\[\033[01;32m\]\u@\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '" >> /home/${USER}/.bash_aliases
+
 ##################
 # Other settings #
 ##################
@@ -123,9 +152,19 @@ RUN apt-get clean &&\
     rm /etc/apt/apt.conf.d/docker-clean
 
 # Set user
-# USER ${LOCAL_UNAME}
+USER ${USER_NAME}
 
-# Set entrypoint script
-COPY ./ros2_entrypoint.sh /
-RUN chmod +x /ros2_entrypoint.sh
-ENTRYPOINT ["/ros2_entrypoint.sh"]
+# Set HOME position
+WORKDIR ${HOMEPATH}
+
+# Create entrypoint script
+RUN echo '#!/bin/bash' > ${HOMEPATH}/entrypoint.sh && \
+    echo 'set -e' >> ${HOMEPATH}/entrypoint.sh && \
+    echo 'if [ -d "${HOMEPATH}/colcon_ws/src" ]; then' >> ${HOMEPATH}/entrypoint.sh; \
+    echo '    find ${HOMEPATH}/colcon_ws/src \( -name "*.py" -o -name "*.sh" \) -exec chmod 755 {} +' >> ${HOMEPATH}/entrypoint.sh; \
+    echo 'fi' >> ${HOMEPATH}/entrypoint.sh; \
+    echo 'source /opt/ros/${ROS_DISTRO}/setup.bash 2>/dev/null || true' >> ${HOMEPATH}/entrypoint.sh; \
+    echo 'exec "$@"' >> ${HOMEPATH}/entrypoint.sh && \
+    chmod +x ${HOMEPATH}/entrypoint.sh
+
+ENTRYPOINT ["bash", "-c", "${HOMEPATH}/entrypoint.sh bash"]

@@ -1,24 +1,6 @@
 #!/bin/bash
 
-DIR=$(pwd)
-str=`echo ${DIR} | awk -F "/" '{ print $(NF - 1) }'`
+export UID=$(id -u) 
+export GID=$(id -g)
 
-cd $(pwd)/../
-
-xhost +local:${USER}
-
-docker run -it \
-    --gpus all \
-    --device /dev/snd \
-    --env CONTAINER_NAME=${str} \
-    --env DISPLAY=${DISPLAY} \
-    --env PULSE_SERVER=unix:/run/user/$(id -u)/pulse/native \
-    --volume /run/user/$(id -u)/pulse:/run/user/$(id -u)/pulse \
-    --volume /etc/udev/rules.d/:/etc/udev/rules.d/ \
-    --volume $(pwd)/src/:/root/colcon_ws/src/ \
-    --shm-size=1g \
-    --net host \
-    --name ${str} \
-    --privileged \
-    sd-robotics/${str} \
-    /bin/bash
+docker compose -f docker-compose.yml up -d

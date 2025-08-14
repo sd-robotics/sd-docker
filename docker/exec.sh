@@ -1,10 +1,6 @@
 #!/bin/bash
 
-DIR=$(pwd)
-str=`echo ${DIR} | awk -F "/" '{ print $(NF - 1) }'`
+# Load environment variables from .env file
+source .env
 
-docker exec \
-    -it \
-    ${str} \
-    /bin/bash
-
+docker compose -f docker-compose.yml exec -it --user ${USER_NAME} spacerobot-container /bin/bash

@@ -1,13 +1,8 @@
-#!/bin/bash
+#! /bin/bash
 
-DIR=$(pwd)
-str=`echo ${DIR} | awk -F "/" '{ print $(NF - 1) }'`
+export UID=$(id -u $USER)
+export GID=$(id -g $USER)
 
-docker build \
-    --tag sd-robotics/${str} \
-    --network host \
-    --build-arg LOCAL_UNAME=${USERNAME} \
-    --build-arg LOCAL_UID=$(id -u ${USER}) \
-    --build-arg LOCAL_GID=$(id -g ${USER}) \
-    .
-
+docker compose -f docker-compose.yml build \
+    --build-arg UID=$UID \
+    --build-arg GID=$GID
