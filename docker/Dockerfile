@@ -46,9 +46,11 @@ RUN apt-get update -q && \
         software-properties-common \
         bash-completion \
         lsb-release \
-        alsa-utils \
-        pulseaudio-utils \
         dpkg-dev \
+        alsa-utils \
+        pulseaudio \
+        pulseaudio-utils \
+        portaudio19-dev \
         pkg-config \
         net-tools \
         usbutils \
