@@ -1,15 +1,13 @@
 #!/bin/bash
 
 # Load environment variables
-export $(cat .env | grep -v '^#' | xargs)
+source .env
 
-# Get UID and GID
-export UID=$(id -u) 
-export GID=$(id -g)
-
-echo "Starting Docker container for ${COMPUTE_TYPE} environment..."
+# Get LOCAL_UID and LOCAL_GID
+export LOCAL_UID=$(id -u) 
+export LOCAL_GID=$(id -g)
 
 SERVICE_NAME="spacerobot-container"
 
 # Start the appropriate container
-docker compose -f docker-compose.yml up -d "$SERVICE_NAME"
+docker compose -f docker-compose.yml up -d ${SERVICE_NAME}
