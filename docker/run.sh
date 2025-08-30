@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Load environment variables
-source .env
+if [[ -f "./env.sh" ]]; then
+  source ./env.sh
+else
+  echo "env.sh not found"; exit 1
+fi
 
-# Get LOCAL_UID and LOCAL_GID
-export LOCAL_UID=$(id -u) 
-export LOCAL_GID=$(id -g)
-
-SERVICE_NAME="spacerobot-container"
+PROJECT_NAME=${CONTAINER_NAME}
 
 # Start the appropriate container
-docker compose -f docker-compose.yml up -d ${SERVICE_NAME}
+docker compose -p ${PROJECT_NAME} up -d spacerobot-container

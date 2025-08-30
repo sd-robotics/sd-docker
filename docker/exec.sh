@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # Load environment variables
-source .env
+if [[ -f "./env.sh" ]]; then
+  source ./env.sh
+else
+  echo "env.sh not found"; exit 1
+fi
 
 # Check if container is running
 if [ ! "$(docker ps -q -f name=${CONTAINER_NAME})" ]; then
@@ -11,4 +15,4 @@ if [ ! "$(docker ps -q -f name=${CONTAINER_NAME})" ]; then
 fi
 
 echo "Entering container: ${CONTAINER_NAME}"
-docker exec -it --user ${USERNAME} ${CONTAINER_NAME} bash
+docker exec -it ${CONTAINER_NAME} /bin/bash
