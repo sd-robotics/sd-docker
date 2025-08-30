@@ -131,6 +131,14 @@ $ mv ~/docker_workspaces/ ~/{your_new_container_name}/
 > [!WARNING]
 > You cannot have multiple containers with the same name, so please keep different names for each folder you create.
 
+> [!NOTE]
+> Before running `build.sh`, make sure to edit the `env.sh` file and set the `ARCHITECTURE` variable according to your hardware.  
+> For Jetson devices, change the value as follows:
+>
+> ```sh
+> ARCHITECTURE=jetson   # Use 'amd64' for standard PC, 'jetson' for NVIDIA Jetson
+> ```
+
 After creating your new folder, go inside the `docker` folder and execute the `build.sh` to create a new image.
 ```bash
 $ cd ~/{your_new_container_name}/docker
