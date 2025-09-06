@@ -65,8 +65,7 @@ RUN apt-get install -yq \
 ###############
 # Install pip #
 ###############
-RUN apt-get update -q && \
-    apt-get install -yq \
+RUN apt-get install -yq \
         python3 \
         python3-dev \
         python3-pip
@@ -103,8 +102,7 @@ RUN python3 -m pip install -U \
 USER root
 
 # Set Cyclone DDS
-RUN apt-get update -q && \
-    apt-get install -yq \
+RUN apt-get install -yq \
         ros-${ROS_DISTRO}-cyclonedds \
         ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
 
@@ -115,6 +113,7 @@ USER ${USERNAME}
 RUN rosdep update && \
     mkdir -p ~/colcon_ws/src && \
     echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc && \
+    echo "source ~/colcon_ws/install/setup.bash"  >> ~/.bashrc && \
     echo "export ROS_DOMAIN_ID=10" >> ~/.bashrc && \
     echo "source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash" >> ~/.bashrc && \
     # Create bash aliases (only for ROS builds)

@@ -15,4 +15,4 @@ if [ ! "$(docker ps -q -f name=${CONTAINER_NAME})" ]; then
 fi
 
 echo "Entering container: ${CONTAINER_NAME}"
-docker exec -it ${CONTAINER_NAME} /bin/bash
+docker compose -p ${CONTAINER_NAME} exec -it spacerobot-container /bin/bash
