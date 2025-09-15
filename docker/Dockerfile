@@ -10,6 +10,8 @@ FROM base-${ARCHITECTURE} AS base
 ###################################
 # Environment_variable_preference #
 ###################################
+ARG LOCAL_UID
+ARG LOCAL_GID
 ARG USER_ID=${LOCAL_UID:-1000}
 ARG GROUP_ID=${LOCAL_GID:-1000}
 ARG USERNAME
@@ -28,12 +30,6 @@ RUN apt-get update -q && \
 
 ENV TZ="Asia/Tokyo"
 
-# Set Language
-RUN apt-get install -yq \
-        locales && \
-    sed -i '/ja_JP.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen ja_JP.UTF-8
-
 ENV LANG=ja_JP.UTF-8
 ENV LANGUAGE=ja_JP:ja
 
@@ -44,7 +40,7 @@ RUN apt-get install -yq \
         bash-completion \
         lsb-release \
         dpkg-dev \
-        alsa-utils \
+        alsa-base \
         pulseaudio \
         pulseaudio-utils \
         portaudio19-dev \

@@ -10,9 +10,9 @@ fi
 # Check if container is running
 if [ ! "$(docker ps -q -f name=${CONTAINER_NAME})" ]; then
     echo "Container ${CONTAINER_NAME} is not running."
-    echo "Please run './run.sh' first to start the container."
+    echo "Please run './up.sh' first to start the container."
     exit 1
 fi
 
 echo "Entering container: ${CONTAINER_NAME}"
-docker compose -p ${CONTAINER_NAME} exec -it spacerobot-container /bin/bash
+docker compose -p ${CONTAINER_NAME} exec -it --user ${USERNAME} spacerobot-container /bin/bash

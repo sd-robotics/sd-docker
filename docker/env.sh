@@ -8,5 +8,5 @@ LOCAL_GID=$(id -g)
 ARCHITECTURE=amd64 # amd64 or jetson
 
 # User Configuration
-USERNAME=spacerobot
+USERNAME=$(whoami)
 CONTAINER_NAME=$(basename $(dirname $(pwd)))
