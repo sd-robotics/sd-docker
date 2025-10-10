@@ -1,8 +1,8 @@
 ARG ARCHITECTURE
 
 # Multi-stage build approach to select base image based on ARCHITECTURE
-FROM nvcr.io/nvidia/isaac/ros:x86_64-ros2_humble_23aced29fb80f407b727eec37775e30e AS base-amd64
-FROM nvcr.io/nvidia/isaac/ros:aarch64-ros2_humble_77e6a678c2058abf96bedcb8f7dd4330 AS base-jetson
+FROM nvcr.io/nvidia/isaac/ros:x86_64-ros2_humble_f8edad8d48e9aa1b5b240c2374c55d60 AS base-amd64
+FROM nvcr.io/nvidia/isaac/ros:aarch64-ros2_humble_adc428c7077de4984a00b63c55903b0a AS base-jetson
 
 # Select the appropriate base image
 FROM base-${ARCHITECTURE} AS base
@@ -137,3 +137,6 @@ USER ${USERNAME}
 
 # Set HOME position
 WORKDIR ${HOME}
+
+# entrypoint
+CMD ["/bin/bash"]
